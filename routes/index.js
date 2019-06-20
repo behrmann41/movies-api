@@ -18,7 +18,7 @@ router.get('/movie/:id', (req, res) => {
   const movieId = req.params.id;
   const fields = ['imdbId', 'title', 'overview', 'releaseDate', 'budget', 'runtime', 'genres', 'language', 'productionCompanies'];
   SqlClient.getOneMovie(movieId, fields, (err, results) => {
-    if (err) return res.send(err);
+    if (err) return res.status(results).send(err.message);
     res.send(results);
   });
 });
@@ -41,6 +41,7 @@ router.get('/movies/genre/:genre', (req, res) => {
     res.send(results);
   });
 });
+
 
 
 module.exports = router;

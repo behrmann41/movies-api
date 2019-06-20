@@ -3,6 +3,8 @@ const path = require('path');
 const _ = require('lodash');
 const Async = require('async');
 const moment = require('moment');
+const Omdb = require('./Omdb');
+const OmdbClient = new Omdb();
 
 class SqlClient {
   constructor() {
@@ -57,13 +59,22 @@ class SqlClient {
     }, (err, results = {}) => {
       if (err) return callback(err);
 
+
       const { movie, ratings } = results;
 
-      if (!movie) return callback(null, `Unable to find movie for id: ${id}`);
+      if (!movie) {
+        return callback(new Error(`Unable to find movie for id: ${id}`), 404);
+      }
 
-      const result = this._mapMovieProps(movie, _.map(ratings, 'rating'));
+      OmdbClient.fetchMovie(movie.imdbId, (err, resp) => {
+        if (err) return callback(err);
 
-      return callback(null, result);
+        const omdbValues = resp;
+
+        const result = this._mapMovieProps(movie, _.map(ratings, 'rating'), omdbValues);
+
+        return callback(null, result);
+      });
 
     });
   }
@@ -134,19 +145,45 @@ class SqlClient {
   // Question - do we want to cut off avg at 2 decimals?
   _getAvg(ratings) {
     const total = ratings.reduce((acc, c) => acc + c, 0);
-    return Number.parseFloat((total / ratings.length).toFixed(2));
+    return (total / ratings.length).toFixed(2);
   }
 
   _formatBudget(budget = 0) {
     return `$${(parseFloat(budget).toFixed(2))}`;
   }
 
-  _mapMovieProps(movie, ratings) {
+  _mapMovieProps(movie, ratings, omdb) {
     movie.budget = this._formatBudget(movie.budget);
-    movie.averageRating = this._getAvg(ratings);
+
+    let genres;
+
+
     movie.description = movie.overview;
     delete movie.overview;
-    return movie;
+
+    movie = _.merge(movie, omdb);
+    movie.ratings = {
+      db: this._getAvg(ratings),
+      idmb: omdb.imdbRating,
+      metascore: omdb.Metascore
+    };
+
+    const lowerObj = _.transform(movie, function (result, val, key) {
+      result[key.toLowerCase()] = val;
+    });
+
+    delete lowerObj.imdbrating;
+    delete lowerObj.metascore;
+
+    try {
+      genres = JSON.parse(lowerObj.genres);
+    } catch (err) {
+      throw new Error('Error parsing')
+    }
+
+    lowerObj.genres = genres;
+
+    return lowerObj;
   }
 
   _validatePage(page) {
