@@ -1,0 +1,21 @@
+{
+  "name": "movies-api",
+  "version": "1.0.0",
+  "description": "service to return movie metadata",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "async": "^3.0.1",
+    "body-parser": "^1.19.0",
+    "compression": "^1.7.4",
+    "express": "^4.17.1",
+    "lodash": "^4.17.11",
+    "moment": "^2.24.0",
+    "sqlite3": "^4.0.9"
+  }
+}

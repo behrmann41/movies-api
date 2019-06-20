@@ -1,0 +1,9 @@
+# Ignoring node_modules as they should be installed via npm
+node_modules/
+
+# Ignoring any logs
+logs/
+npm-debug.log
+
+# Ignore IDE settings
+.vscode
