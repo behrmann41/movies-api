@@ -1,3 +1,9 @@
+# How to run
+
+- Pull down repo 
+- npm i && npm start
+
+
 # Movie API Code Test
 
 ## Pre-requisites
